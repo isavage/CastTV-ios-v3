@@ -286,11 +286,13 @@ didReceiveResponse:(NSURLResponse *)response {
       NSString *contentID = [trackDict gck_stringForKey:kKeyContentID];
       NSString *language = [trackDict gck_stringForKey:kKeyLanguage];
 
-      NSURL *url = [self buildURLWithString:contentID baseURL:tracksBaseURL];
+     // NSURL *url = [self buildURLWithString:contentID baseURL:tracksBaseURL];
+
 
       GCKMediaTrack *mediaTrack = [[GCKMediaTrack alloc]
           initWithIdentifier:identifier
-           contentIdentifier:[url absoluteString]
+       //  contentIdentifier:[url absoluteString]
+           contentIdentifier:contentID
                  contentType:kDefaultTrackMimeType
                         type:[self trackTypeFrom:typeString]
                  textSubtype:[self textTrackSubtypeFrom:subtypeString]

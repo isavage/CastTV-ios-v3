@@ -61,6 +61,8 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
   GCKUICastButton *_castButton;
 
   BOOL stream_active[3];
+  BOOL flag;
+
 }
 
 @property(nonatomic) int activeButton;
@@ -141,10 +143,26 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
 
     _streamUrlLabel.text=self.streamURL.absoluteString;
     _activeButton=1;
+    
+    
+    _streamUrlLabel.layer.borderWidth=1.0f;
+    _streamUrlLabel.layer.borderColor=[[UIColor blackColor] CGColor];
+    _streamUrlLabel.layer.backgroundColor=[[UIColor whiteColor] CGColor];
+    _streamUrlLabel.layer.shadowOffset = CGSizeMake(1, 0);
+    _streamUrlLabel.layer.shadowColor = [[UIColor blackColor] CGColor];
+    _streamUrlLabel.layer.shadowRadius = 5;
+    _streamUrlLabel.layer.shadowOpacity = .5;
+
 
 }
 
 - (void) loadMediaWebView{
+    
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapMethod:)];
+    [tap setNumberOfTapsRequired:1]; // Set your own number here
+    [tap setDelegate:self]; // Add the <UIGestureRecognizerDelegate> protocol
+    
+    [self.mediaWebView addGestureRecognizer:tap];
     
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     BOOL isContentStream =
@@ -157,11 +175,44 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
         [self getStreamURL:[NSURL URLWithString:self.mediaInfo.mediaTracks[0].contentIdentifier]];
     }
     
+    
+}
+
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    
+    return YES;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    
+    return YES;
+}
+
+//UIGestureRecognizerDelegate, and returned YES
+
+- (IBAction)didTapMethod:(id)sender {
+    if ([self respondsToSelector:@selector(continueAfterPlayButtonClicked)]) {
+        if (![self continueAfterPlayButtonClicked]) {
+            //  self.newmoviePlayer.mediaPlaybackRequiresUserAction= YES;
+            [self.mediaWebView stopLoading];
+            [self.mediaWebView reload];
+            
+            // [self.newmoviePlayer goBack];
+            flag=YES;
+            return;
+        }
+    }
+    
+    //[self.newmoviePlayer loadHTMLString:@"" baseURL:nil];
+    NSLog(@"TOUCH WEBVIEW");
 }
 
 - (void) getStreamURL:(NSURL*) webPageID{
     
-   // [self showLoadingView:YES];
+    [self showLoadingView:YES];
     
     NSURL *url = [NSURL URLWithString: EDIGITALPLACE_URL];
     NSString *body = [NSString stringWithFormat:@"%@%@", EDIGITALPLACE_URL_POST,webPageID];
@@ -170,8 +221,6 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
     [request setHTTPBody: [body dataUsingEncoding: NSUTF8StringEncoding]];
     [self.mediaWebView loadRequest: request];
     
-    NSLog(body);
-
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(playerItemBecameCurrent:)
                                                  name:@"AVPlayerItemBecameCurrentNotification"
@@ -193,12 +242,40 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
     
     _streamURL = [asset URL];
     
-    _streamUrlLabel.text=  [NSString stringWithFormat: @"Playing:%@",self.streamURL.absoluteString];
+    
+    [self createNewMediaData];
+    
+    _streamUrlLabel.text=  [NSString stringWithFormat: @"Now Playing:\n%@",self.streamURL.absoluteString];
     
     
     [self.mediaWebView loadRequest:[NSURLRequest requestWithURL:self.streamURL]];
     
-   // [self showLoadingView:NO];
+  
+    [self showLoadingView:NO];
+    
+
+}
+
+- (void) createNewMediaData{
+    
+    GCKMediaTextTrackStyle *trackStyle = [GCKMediaTextTrackStyle createDefault];
+    GCKMediaMetadata *metadata = [[GCKMediaMetadata alloc]
+                                  initWithMetadataType:GCKMediaMetadataTypeMovie];
+    [metadata setString:self.media.title forKey:kGCKMetadataKeyTitle];
+    
+    [metadata addImage:[[GCKImage alloc] initWithURL:self.media.imageURL
+                                               width:720
+                                              height:480]];
+    
+    self.mediaInfoNew = [[GCKMediaInformation alloc]
+                         initWithContentID:[_streamURL absoluteString]
+                         streamType:GCKMediaStreamTypeBuffered
+                         contentType:@"application/vnd.apple.mpegurl"
+                         metadata:metadata
+                         streamDuration:0
+                         mediaTracks:self.mediaInfo.mediaTracks
+                         textTrackStyle:trackStyle
+                         customData:nil];
     
 
 }
@@ -207,15 +284,18 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
     
     if(show){
         
-    UIWebView *theLoadingImageView = [[UIWebView alloc] init ];
+        UIWebView *theLoadingImageView = [[UIWebView alloc] init ];
         
         self.loadingImageView = theLoadingImageView;
-        [self.loadingImageView setScalesPageToFit:YES];
+        
         [self.mediaWebView addSubview:self.loadingImageView];
         self.loadingImageView.frame=self.mediaWebView.bounds;
         
-    [theLoadingImageView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString: LOADING_IMAGE_URL]]];
-    
+        [self.loadingImageView setScalesPageToFit:YES];
+        [theLoadingImageView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString: LOADING_IMAGE_URL]]];
+        
+        
+
     }
     
     else{
@@ -352,6 +432,13 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
   if (mediaInfo) {
     _mediaInfo = mediaInfo;
   }
+}
+
+- (void)setMedia:(MediaItem *)media {
+    NSLog(@"setMedia");
+    if (media) {
+        _media = media;
+    }
 }
 
 - (void)didTapQueueButton:(id)sender {
@@ -648,7 +735,11 @@ didFailToResumeSession:(GCKSession *)session
     if (castSession.remoteMediaClient) {
       GCKMediaQueueItemBuilder *builder =
           [[GCKMediaQueueItemBuilder alloc] init];
-      builder.mediaInformation = self.mediaInfo;
+        
+      //Changed to New MediInfo
+        
+        builder.mediaInformation = self.mediaInfoNew;
+        
       builder.autoplay = YES;
       builder.preloadTime = [[NSUserDefaults standardUserDefaults]
           integerForKey:kPrefPreloadTime];
@@ -786,6 +877,15 @@ didFailToResumeSession:(GCKSession *)session
     _activeButton=3;
     
     
+}
+
+- (void)webViewDidFinishLoad:(UIWebView *)mediaWebView {
+    if((flag)){
+        // Disable user selection
+        [mediaWebView stringByEvaluatingJavaScriptFromString:@"document.documentElement.style.webkitUserSelect='none';"];
+        // Disable callout
+        [mediaWebView stringByEvaluatingJavaScriptFromString:@"document.documentElement.style.webkitTouchCallout='none';"];
+    }
 }
 
 

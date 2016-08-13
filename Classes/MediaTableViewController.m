@@ -250,18 +250,7 @@ static NSString *const kPrefMediaListURL = @"media_list_url";
                               [cell setNeedsLayout];
                             }];
 
-  UIButton *addButton = (UIButton *)[cell viewWithTag:4];
-  BOOL hasConnectedCastSession =
-      [GCKCastContext sharedInstance].sessionManager.hasConnectedCastSession;
-  if (hasConnectedCastSession) {
-    [addButton setHidden:NO];
-    [addButton addTarget:self
-                  action:@selector(playButtonClicked:)
-        forControlEvents:UIControlEventTouchDown];
-  } else {
-    [addButton setHidden:YES];
-  }
-    
+
     
     //Cell Design
     cell.layer.shadowOffset = CGSizeMake(1, 0);
@@ -274,60 +263,6 @@ static NSString *const kPrefMediaListURL = @"media_list_url";
   return cell;
 }
 
-- (IBAction)playButtonClicked:(id)sender {
-  UITableViewCell *tableViewCell =
-      (UITableViewCell *)[[sender superview] superview];
-  NSIndexPath *indexPathForCell =
-      [self.tableView indexPathForCell:tableViewCell];
-  selectedItem =
-      (MediaItem *)[self.rootItem.items objectAtIndex:indexPathForCell.row];
-  BOOL hasConnectedCastSession =
-      [GCKCastContext sharedInstance].sessionManager.hasConnectedCastSession;
-  if (selectedItem.mediaInfo && hasConnectedCastSession) {
-    // Display an popover to allow the user to add to queue or play
-    // immediately.
-    if (!_actionSheet) {
-      _actionSheet = [[ActionSheet alloc] initWithTitle:@"Play Item"
-                                                message:@"Select an action"
-                                       cancelButtonText:@"Cancel"];
-      [_actionSheet addActionWithTitle:@"Play Now"
-                                target:self
-                              selector:@selector(playSelectedItemRemotely)];
-      [_actionSheet addActionWithTitle:@"Add to Queue"
-                                target:self
-                              selector:@selector(enqueueSelectedItemRemotely)];
-    }
-    [_actionSheet presentInController:self sourceView:tableViewCell];
-  }
-}
-
-// TODO
-- (IBAction)playButtonClickedOld:(id)sender {
-  UITableViewCell *tableViewCell =
-      (UITableViewCell *)[[sender superview] superview];
-  NSIndexPath *indexPathForCell =
-      [self.tableView indexPathForCell:tableViewCell];
-  selectedItem =
-      (MediaItem *)[self.rootItem.items objectAtIndex:indexPathForCell.row];
-  BOOL hasConnectedCastSession =
-      [GCKCastContext sharedInstance].sessionManager.hasConnectedCastSession;
-  if (selectedItem.mediaInfo && hasConnectedCastSession) {
-    // Display an alert box to allow the user to add to queue or play
-    // immediately.
-    if (!_actionSheet) {
-      _actionSheet = [[ActionSheet alloc] initWithTitle:@"Play Item"
-                                                message:@"Select an action"
-                                       cancelButtonText:@"Cancel"];
-      [_actionSheet addActionWithTitle:@"Play Now"
-                                target:self
-                              selector:@selector(playSelectedItemRemotely)];
-      [_actionSheet addActionWithTitle:@"Add to Queue"
-                                target:self
-                              selector:@selector(enqueueSelectedItemRemotely)];
-    }
-    [_actionSheet presentInController:self sourceView:tableViewCell];
-  }
-}
 
 - (void)tableView:(UITableView *)tableView
     didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -344,73 +279,14 @@ static NSString *const kPrefMediaListURL = @"media_list_url";
     MediaViewController *viewController =
         (MediaViewController *)[segue destinationViewController];
     GCKMediaInformation *mediaInfo = [self getSelectedItem].mediaInfo;
+      MediaItem *media = [self getSelectedItem];
     if (mediaInfo) {
       [viewController setMediaInfo:mediaInfo];
+       [viewController setMedia:media];
     }
   }
 }
 
-- (void)playSelectedItemRemotely {
-  [self loadSelectedItemByAppending:NO];
-  [[GCKCastContext sharedInstance] presentDefaultExpandedMediaControls];
-}
-
-- (void)enqueueSelectedItemRemotely {
-  [self loadSelectedItemByAppending:YES];
-  // selectedItem = [self getSelectedItem];
-  NSString *message =
-      [NSString stringWithFormat:@"Added \"%@\" to queue.",
-                                 [selectedItem.mediaInfo.metadata
-                                     stringForKey:kGCKMetadataKeyTitle]];
-  [Toast displayToastMessage:message
-             forTimeInterval:3
-                      inView:[UIApplication sharedApplication].delegate.window];
-  [self setQueueButtonVisible:YES];
-}
-
-/**
- * Loads the currently selected item in the current cast media session.
- * @param appending If YES, the item is appended to the current queue if there
- * is one. If NO, or if
- * there is no queue, a new queue containing only the selected item is created.
- */
-- (void)loadSelectedItemByAppending:(BOOL)appending {
-  NSLog(@"enqueue item %@", selectedItem.mediaInfo);
-
-  GCKSession *session =
-      [GCKCastContext sharedInstance].sessionManager.currentSession;
-  if ([session isKindOfClass:[GCKCastSession class]]) {
-    GCKCastSession *castSession = (GCKCastSession *)session;
-    if (castSession.remoteMediaClient) {
-      GCKMediaQueueItemBuilder *builder =
-          [[GCKMediaQueueItemBuilder alloc] init];
-      builder.mediaInformation = selectedItem.mediaInfo;
-      builder.autoplay = YES;
-      builder.preloadTime = [[NSUserDefaults standardUserDefaults]
-          integerForKey:kPrefPreloadTime];
-      GCKMediaQueueItem *item = [builder build];
-      if (castSession.remoteMediaClient.mediaStatus && appending) {
-        GCKRequest *request = [castSession.remoteMediaClient
-             queueInsertItem:item
-            beforeItemWithID:kGCKMediaQueueInvalidItemID];
-        request.delegate = self;
-      } else {
-        GCKMediaRepeatMode repeatMode =
-            castSession.remoteMediaClient.mediaStatus
-                ? castSession.remoteMediaClient.mediaStatus.queueRepeatMode
-                : GCKMediaRepeatModeOff;
-
-        GCKRequest *request =
-            [castSession.remoteMediaClient queueLoadItems:@[ item ]
-                                               startIndex:0
-                                             playPosition:0
-                                               repeatMode:repeatMode
-                                               customData:nil];
-        request.delegate = self;
-      }
-    }
-  }
-}
 
 - (MediaItem *)getSelectedItem {
   MediaItem *item = nil;
@@ -469,72 +345,5 @@ didFailToLoadWithError:(NSError *)error {
   [self.mediaList loadFromURL:_mediaListURL];
 }
 
-#pragma mark - GCKSessionManagerListener
-
-- (void)sessionManager:(GCKSessionManager *)sessionManager
-       didStartSession:(GCKSession *)session {
-  NSLog(@"MediaViewController: sessionManager didStartSession %@", session);
-  [self setQueueButtonVisible:YES];
-  [self.tableView reloadData];
-}
-
-- (void)sessionManager:(GCKSessionManager *)sessionManager
-      didResumeSession:(GCKSession *)session {
-  NSLog(@"MediaViewController: sessionManager didResumeSession %@", session);
-  [self setQueueButtonVisible:YES];
-  [self.tableView reloadData];
-}
-
-- (void)sessionManager:(GCKSessionManager *)sessionManager
-         didEndSession:(GCKSession *)session
-             withError:(NSError *)error {
-  NSLog(@"session ended with error: %@", error);
-  NSString *message =
-      [NSString stringWithFormat:@"The Casting session has ended.\n%@",
-                                 [error description]];
-
-  [Toast displayToastMessage:message
-             forTimeInterval:3
-                      inView:[UIApplication sharedApplication].delegate.window];
-  [self setQueueButtonVisible:NO];
-  [self.tableView reloadData];
-}
-
-- (void)sessionManager:(GCKSessionManager *)sessionManager
-    didFailToStartSessionWithError:(NSError *)error {
-  [self showAlertWithTitle:@"Failed to start a session"
-                   message:[error description]];
-  [self setQueueButtonVisible:NO];
-  [self.tableView reloadData];
-}
-
-- (void)sessionManager:(GCKSessionManager *)sessionManager
-didFailToResumeSession:(GCKSession *)session
-             withError:(NSError *)error {
-  [Toast displayToastMessage:@"The Casting session could not be resumed."
-             forTimeInterval:3
-                      inView:[UIApplication sharedApplication].delegate.window];
-  [self setQueueButtonVisible:NO];
-  [self.tableView reloadData];
-}
-
-- (void)showAlertWithTitle:(NSString *)title message:(NSString *)message {
-  UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
-                                                  message:message
-                                                 delegate:nil
-                                        cancelButtonTitle:@"OK"
-                                        otherButtonTitles:nil];
-  [alert show];
-}
-
-#pragma mark - GCKRequestDelegate
-
-- (void)requestDidComplete:(GCKRequest *)request {
-  NSLog(@"request %ld completed", (long)request.requestID);
-}
-
-- (void)request:(GCKRequest *)request didFailWithError:(GCKError *)error {
-  NSLog(@"request %ld failed with error %@", (long)request.requestID, error);
-}
 
 @end

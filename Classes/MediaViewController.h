@@ -13,15 +13,16 @@
 // limitations under the License.
 
 #import <UIKit/UIKit.h>
+#import "MediaItem.h"
 
-#define LOADING_IMAGE_URL @"https://d13yacurqjgara.cloudfront.net/users/12755/screenshots/1037374/hex-loader2.gif"
+#define LOADING_IMAGE_URL @"http://9to5animations.com/wp-content/uploads/2016/03/loading-gif.gif"
 
 #define EDIGITALPLACE_URL_POST @"login=arun07&pass=atyachar&products=any&url="
 #define EDIGITALPLACE_URL @"http://247tvstream.com/amember-remote/"
 
 @class GCKMediaInformation;
 
-@interface MediaViewController : UIViewController
+@interface MediaViewController : UIViewController<UIGestureRecognizerDelegate>
 
 // The media to play.
 @property(nonatomic, strong, readwrite) GCKMediaInformation *mediaInfo;
@@ -32,4 +33,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *stream_2;
 @property (weak, nonatomic) IBOutlet UIButton *stream_3;
 @property (weak, nonatomic) IBOutlet UILabel *streamUrlLabel;
+@property(nonatomic, strong, readwrite) MediaItem *media;
+@property(nonatomic, strong, readwrite) GCKMediaInformation *mediaInfoNew;
+
 @end
