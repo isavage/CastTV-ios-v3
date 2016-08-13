@@ -76,6 +76,7 @@
 		6FEF79B51CBC340B001211D3 /* play_circle@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6FEF79B31CBC340B001211D3 /* play_circle@3x.png */; };
 		7F9C32F91D5ED93100E9DB8E /* logo_castvideos.png in Resources */ = {isa = PBXBuildFile; fileRef = 7F9C32F71D5ED93100E9DB8E /* logo_castvideos.png */; };
 		7F9C32FA1D5ED93100E9DB8E /* logo_castvideos@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 7F9C32F81D5ED93100E9DB8E /* logo_castvideos@2x.png */; };
+		7F9C32FD1D5FACAB00E9DB8E /* AsyncImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F9C32FC1D5FACAB00E9DB8E /* AsyncImageView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -162,6 +163,8 @@
 		77A2498B3DEBC4D0806F53B8 /* Pods-CastVideos-ios.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CastVideos-ios.debug.xcconfig"; path = "Pods/Target Support Files/Pods-CastVideos-ios/Pods-CastVideos-ios.debug.xcconfig"; sourceTree = "<group>"; };
 		7F9C32F71D5ED93100E9DB8E /* logo_castvideos.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo_castvideos.png; sourceTree = "<group>"; };
 		7F9C32F81D5ED93100E9DB8E /* logo_castvideos@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo_castvideos@2x.png"; sourceTree = "<group>"; };
+		7F9C32FB1D5FACAB00E9DB8E /* AsyncImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AsyncImageView.h; sourceTree = "<group>"; };
+		7F9C32FC1D5FACAB00E9DB8E /* AsyncImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AsyncImageView.m; sourceTree = "<group>"; };
 		F15FDD49D892A86590BC0866 /* Pods-CastVideos-ios.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CastVideos-ios.release.xcconfig"; path = "Pods/Target Support Files/Pods-CastVideos-ios/Pods-CastVideos-ios.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -200,6 +203,8 @@
 				6F13008D1CB478C40015E8D4 /* MediaListModel.m */,
 				6F1300871CB427810015E8D4 /* RootContainerViewController.h */,
 				6F1300881CB427810015E8D4 /* RootContainerViewController.m */,
+				7F9C32FB1D5FACAB00E9DB8E /* AsyncImageView.h */,
+				7F9C32FC1D5FACAB00E9DB8E /* AsyncImageView.m */,
 				6F233F2E1CA4612C00E484F1 /* ActionSheet.h */,
 				6F233F2F1CA4612C00E484F1 /* ActionSheet.m */,
 				6F233F301CA4612C00E484F1 /* AppDelegate.h */,
@@ -499,6 +504,7 @@
 				6F233F4E1CA4612C00E484F1 /* LocalPlayerView.m in Sources */,
 				6F233F561CA4612C00E484F1 /* Toast.m in Sources */,
 				6FBC43E41CA3138500AAB267 /* main.m in Sources */,
+				7F9C32FD1D5FACAB00E9DB8E /* AsyncImageView.m in Sources */,
 				6F233F491CA4612C00E484F1 /* ActionSheet.m in Sources */,
 				6F233F4A1CA4612C00E484F1 /* AppDelegate.m in Sources */,
 				6F233F511CA4612C00E484F1 /* MediaTableViewController.m in Sources */,

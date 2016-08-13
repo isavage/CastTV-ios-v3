@@ -22,6 +22,7 @@
 #import "MediaTableViewController.h"
 #import "MediaViewController.h"
 #import "Toast.h"
+#import "AsyncImageView.h"
 
 static NSString *const kPrefMediaListURL = @"media_list_url";
 
@@ -242,7 +243,7 @@ static NSString *const kPrefMediaListURL = @"media_list_url";
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
   }
 
-  UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:3];
+   AsyncImageView *imageView = (AsyncImageView *)[cell.contentView viewWithTag:3];
   [[GCKCastContext sharedInstance]
           .imageCache fetchImageForURL:item.imageURL
                             completion:^(UIImage *image) {
