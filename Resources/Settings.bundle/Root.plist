@@ -6,6 +6,16 @@
 	<array>
 		<dict>
 			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Is Content Stream</string>
+			<key>Key</key>
+			<string>is_content_stream</string>
+			<key>DefaultValue</key>
+			<false/>
+		</dict>
+		<dict>
+			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 			<key>Title</key>
 			<string>General</string>
@@ -134,7 +144,7 @@
 			<key>Key</key>
 			<string>receiver_app_id</string>
 			<key>DefaultValue</key>
-			<string>4F8B3483</string>
+			<string>E3BC6D75</string>
 			<key>Titles</key>
 			<array>
 				<string>Prod (4F8B3483)</string>

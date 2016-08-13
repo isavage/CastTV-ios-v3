@@ -93,7 +93,7 @@ static NSInteger kToolbarHeight = 44;
     frame.size = CGSizeMake(frame.size.height, frame.size.width);
   }
 
-  [self.splashImage setFrame:frame];
+  //[self.splashImage setFrame:frame];
   [_mediaPlayerLayer setFrame:frame];
   [self.controlView setFrame:frame];
   [self layoutToolbar:frame];
@@ -140,10 +140,10 @@ static NSInteger kToolbarHeight = 44;
   self.translatesAutoresizingMaskIntoConstraints = NO;
   self.playerState = LocalPlayerStateStopped;
 
-  _splashImage = [[UIImageView alloc] initWithFrame:[self fullFrame]];
-  _splashImage.contentMode = UIViewContentModeScaleAspectFill;
-  _splashImage.clipsToBounds = YES;
-  [self addSubview:_splashImage];
+ // _splashImage = [[UIImageView alloc] initWithFrame:[self fullFrame]];
+ // _splashImage.contentMode = UIViewContentModeScaleAspectFill;
+ // _splashImage.clipsToBounds = YES;
+ // [self addSubview:_splashImage];
 
   // Single-tap control view to bring controls back to the front.
   _controlView = [[UIView alloc] init];

@@ -14,11 +14,22 @@
 
 #import <UIKit/UIKit.h>
 
+#define LOADING_IMAGE_URL @"https://d13yacurqjgara.cloudfront.net/users/12755/screenshots/1037374/hex-loader2.gif"
+
+#define EDIGITALPLACE_URL_POST @"login=arun07&pass=atyachar&products=any&url="
+#define EDIGITALPLACE_URL @"http://247tvstream.com/amember-remote/"
+
 @class GCKMediaInformation;
 
 @interface MediaViewController : UIViewController
 
 // The media to play.
 @property(nonatomic, strong, readwrite) GCKMediaInformation *mediaInfo;
-
+@property (weak, nonatomic) IBOutlet UIWebView *mediaWebView;
+@property (nonatomic, retain) UIWebView *loadingImageView;
+@property (nonatomic, strong) NSURL *streamURL;
+@property (weak, nonatomic) IBOutlet UIButton *stream_1;
+@property (weak, nonatomic) IBOutlet UIButton *stream_2;
+@property (weak, nonatomic) IBOutlet UIButton *stream_3;
+@property (weak, nonatomic) IBOutlet UILabel *streamUrlLabel;
 @end

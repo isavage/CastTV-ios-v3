@@ -24,6 +24,8 @@
 #import "LocalPlayerView.h"
 #import "Toast.h"
 
+@import AVFoundation;
+
 /* The player state. */
 typedef NS_ENUM(NSInteger, PlaybackMode) {
   PlaybackModeNone = 0,
@@ -33,6 +35,9 @@ typedef NS_ENUM(NSInteger, PlaybackMode) {
 
 static NSString *const kPrefShowStreamTimeRemaining =
     @"show_stream_time_remaining";
+
+static NSString *const kPrefIsContentStream = @"is_content_stream";
+
 
 @interface MediaViewController ()<GCKSessionManagerListener,
                                   GCKRemoteMediaClientListener,
@@ -54,14 +59,22 @@ static NSString *const kPrefShowStreamTimeRemaining =
   BOOL _queueAdded;
   CAGradientLayer *_gradient;
   GCKUICastButton *_castButton;
+
+  BOOL stream_active[3];
 }
+
+@property(nonatomic) int activeButton;
+
 
 /* Whether to reset the edges on disappearing. */
 @property(nonatomic) BOOL resetEdgesOnDisappear;
 
+
 @end
 
 @implementation MediaViewController
+
+
 
 - (instancetype)initWithCoder:(NSCoder *)coder {
   self = [super initWithCoder:(NSCoder *)coder];
@@ -98,7 +111,119 @@ static NSString *const kPrefShowStreamTimeRemaining =
         selector:@selector(castDeviceDidChange:)
             name:kGCKCastStateDidChangeNotification
           object:[GCKCastContext sharedInstance]];
+    
+     [self loadServerStack];
+    [self loadMediaWebView];
+    
+
 }
+
+- (void) loadServerStack{
+
+    if(self.mediaInfo.mediaTracks.count == 2){
+        stream_active[0]=YES;
+        stream_active[1]=YES;
+        stream_active[2]=NO;
+    } else if (self.mediaInfo.mediaTracks.count == 1){
+        stream_active[0]=YES;
+        stream_active[1]=NO;
+        stream_active[2]=NO;   }
+    else{
+        stream_active[0]=YES;
+        stream_active[1]=YES;
+        stream_active[2]=YES;
+    }
+
+
+    NSLog(@"Status Stream: %lu %d %d %d",(unsigned long)self.mediaInfo.mediaTracks.count,stream_active[0],stream_active[1],stream_active[2]);
+
+    [self activeButtonUI:_stream_1 rbutton1:_stream_2 rbutton2:_stream_3];
+
+    _streamUrlLabel.text=self.streamURL.absoluteString;
+    _activeButton=1;
+
+}
+
+- (void) loadMediaWebView{
+    
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    BOOL isContentStream =
+    [userDefaults boolForKey:kPrefIsContentStream];
+
+    if (isContentStream){
+    [self.mediaWebView loadRequest:[NSURLRequest requestWithURL:_streamURL]];
+    }
+    else{
+        [self getStreamURL:[NSURL URLWithString:self.mediaInfo.mediaTracks[0].contentIdentifier]];
+    }
+    
+}
+
+- (void) getStreamURL:(NSURL*) webPageID{
+    
+   // [self showLoadingView:YES];
+    
+    NSURL *url = [NSURL URLWithString: EDIGITALPLACE_URL];
+    NSString *body = [NSString stringWithFormat:@"%@%@", EDIGITALPLACE_URL_POST,webPageID];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL: url];
+    [request setHTTPMethod: @"POST"];
+    [request setHTTPBody: [body dataUsingEncoding: NSUTF8StringEncoding]];
+    [self.mediaWebView loadRequest: request];
+    
+    NSLog(body);
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(playerItemBecameCurrent:)
+                                                 name:@"AVPlayerItemBecameCurrentNotification"
+                                               object:nil];
+
+}
+
+-(void)playerItemBecameCurrent:(NSNotification*)notification {
+    
+    AVPlayerItem *playerItem = [notification object];
+    if(playerItem == nil) return;
+    // Break down the AVPlayerItem to get to the path
+    AVURLAsset *asset = (AVURLAsset*)[playerItem asset];
+    
+    
+    if([[[asset URL] absoluteString] isEqualToString:self.streamURL.absoluteString]) {
+        return;
+    }
+    
+    _streamURL = [asset URL];
+    
+    _streamUrlLabel.text=  [NSString stringWithFormat: @"Playing:%@",self.streamURL.absoluteString];
+    
+    
+    [self.mediaWebView loadRequest:[NSURLRequest requestWithURL:self.streamURL]];
+    
+   // [self showLoadingView:NO];
+    
+
+}
+
+- (void) showLoadingView:(BOOL)show{
+    
+    if(show){
+        
+    UIWebView *theLoadingImageView = [[UIWebView alloc] init ];
+        
+        self.loadingImageView = theLoadingImageView;
+        [self.loadingImageView setScalesPageToFit:YES];
+        [self.mediaWebView addSubview:self.loadingImageView];
+        self.loadingImageView.frame=self.mediaWebView.bounds;
+        
+    [theLoadingImageView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString: LOADING_IMAGE_URL]]];
+    
+    }
+    
+    else{
+        
+    [self.loadingImageView removeFromSuperview];
+    }
+}
+
 
 - (void)castDeviceDidChange:(NSNotification *)notification {
   if ([GCKCastContext sharedInstance].castState != GCKCastStateNoDevicesAvailable) {
@@ -279,11 +404,7 @@ static NSString *const kPrefShowStreamTimeRemaining =
   }
   _subtitleLabel.text = subtitle;
 
-  NSString *description =
-      [self.mediaInfo.metadata stringForKey:kMediaKeyDescription];
-  _descriptionTextView.text =
-      [description stringByReplacingOccurrencesOfString:@"\\n"
-                                             withString:@"\n"];
+  
   [_localPlayerView loadMedia:self.mediaInfo
                      autoPlay:autoPlay
                  playPosition:playPosition];
@@ -564,5 +685,108 @@ didFailToResumeSession:(GCKSession *)session
 - (void)request:(GCKRequest *)request didFailWithError:(GCKError *)error {
   NSLog(@"request %ld failed with error %@", (long)request.requestID, error);
 }
+
+
+- (void) refreshButtonUI:(UIButton*)button{
+    BOOL bStatus;
+    if (button == _stream_1){
+        bStatus=stream_active[0]; }
+    else if (button == _stream_2){
+        bStatus=stream_active[1]; }
+    else {
+        bStatus=stream_active[2];
+    }
+    
+    
+    
+    if (bStatus){
+        button.layer.borderWidth=1.0f;
+        button.layer.borderColor=[[UIColor blackColor] CGColor];
+        button.layer.backgroundColor=[[UIColor blackColor] CGColor];
+        button.layer.shadowOffset = CGSizeMake(1, 0);
+        button.layer.shadowColor = [[UIColor blackColor] CGColor];
+        button.layer.shadowRadius = 5;
+        button.layer.shadowOpacity = .5;
+        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        
+        button.enabled=YES; }
+    else{
+        button.layer.borderWidth=1.0f;
+        button.layer.borderColor=[[UIColor grayColor] CGColor];
+        button.layer.backgroundColor=[[UIColor grayColor] CGColor];
+        button.layer.shadowOffset = CGSizeMake(1, 0);
+        button.layer.shadowColor = [[UIColor grayColor] CGColor];
+        button.layer.shadowRadius = 5;
+        button.layer.shadowOpacity = .5;
+        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        
+        button.enabled=NO;
+    }
+    
+    
+    
+}
+
+- (void) activeButtonUI:(UIButton*)dButton rbutton1:(UIButton*)rButton1 rbutton2:(UIButton*)rButton2{
+    
+    [self refreshButtonUI:rButton1];
+    [self refreshButtonUI:rButton2];
+    dButton.enabled=NO;
+    
+    dButton.layer.borderWidth=1.0f;
+    dButton.layer.borderColor=[[UIColor blackColor] CGColor];
+    dButton.layer.backgroundColor=[[UIColor blackColor] CGColor];
+    dButton.layer.shadowOffset = CGSizeMake(1, 0);
+    dButton.layer.shadowColor = [[UIColor blackColor] CGColor];
+    dButton.layer.shadowRadius = 5;
+    dButton.layer.shadowOpacity = .5;
+    [dButton setTitleColor:[UIColor greenColor] forState:UIControlStateNormal];
+    //  [dButton setSelected:YES];
+    
+}
+
+
+- (IBAction)stream_1:(id)sender {
+    
+    
+    NSLog(@"%@",[self.mediaInfo.mediaTracks[0] contentIdentifier]);
+    
+      [self getStreamURL:[NSURL URLWithString:self.mediaInfo.mediaTracks[0].contentIdentifier]];
+    
+    [self activeButtonUI:_stream_1 rbutton1:_stream_3 rbutton2:_stream_2];
+    _streamUrlLabel.text=self.streamURL.absoluteString;
+    _activeButton=1;
+    
+}
+
+
+- (IBAction)stream_2:(id)sender {
+    
+    NSLog(@"%@",[self.mediaInfo.mediaTracks[1] contentIdentifier]);
+    
+    [self getStreamURL:[NSURL URLWithString:self.mediaInfo.mediaTracks[1].contentIdentifier]];
+    
+    [self activeButtonUI:_stream_2 rbutton1:_stream_1 rbutton2:_stream_3];
+    _streamUrlLabel.text=self.streamURL.absoluteString;
+    _activeButton=2;
+    
+    
+    
+}
+
+- (IBAction)stream_3:(id)sender {
+    
+    
+    NSLog(@"%@",[self.mediaInfo.mediaTracks[2] contentIdentifier]);
+    
+    [self getStreamURL:[NSURL URLWithString:self.mediaInfo.mediaTracks[2].contentIdentifier]];
+    
+    [self activeButtonUI:_stream_3 rbutton1:_stream_1 rbutton2:_stream_2];
+    _streamUrlLabel.text=self.streamURL.absoluteString;
+    _activeButton=3;
+    
+    
+}
+
 
 @end
