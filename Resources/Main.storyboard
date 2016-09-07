@@ -22,15 +22,9 @@
                                     <rect key="frame" x="0.0" y="0.0" width="414" height="79.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <imageView userInteractionEnabled="NO" tag="3" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Sqf-Ut-xUR" customClass="GCKUIImageView">
-                                            <rect key="frame" x="8" y="0.0" width="108" height="72"/>
-                                            <constraints>
-                                                <constraint firstAttribute="width" constant="108" id="Yyj-ck-zEn"/>
-                                            </constraints>
-                                        </imageView>
                                         <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" tag="1" contentMode="top" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Chromecast: For Bigger Blazes" lineBreakMode="wordWrap" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AAY-8o-4dv">
                                             <rect key="frame" x="124" y="0.0" width="145" height="71"/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="16"/>
                                             <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                             <nil key="highlightedColor"/>
                                         </label>
@@ -48,6 +42,12 @@
                                                 </mask>
                                             </variation>
                                         </label>
+                                        <imageView userInteractionEnabled="NO" tag="3" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Sqf-Ut-xUR" customClass="GCKUIImageView">
+                                            <rect key="frame" x="8" y="10" width="101" height="57.5"/>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="108" id="Yyj-ck-zEn"/>
+                                            </constraints>
+                                        </imageView>
                                     </subviews>
                                     <constraints>
                                         <constraint firstAttribute="trailingMargin" secondItem="vZV-hs-ncg" secondAttribute="trailing" constant="10" id="49h-iX-ehl"/>
@@ -115,7 +115,7 @@
                                 </variation>
                             </label>
                             <webView contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jqR-7a-mpA">
-                                <rect key="frame" x="32" y="36" width="292" height="158"/>
+                                <rect key="frame" x="25" y="36" width="339" height="166"/>
                                 <color key="backgroundColor" red="0.16555546469999999" green="0.16555546469999999" blue="0.16555546469999999" alpha="1" colorSpace="calibratedRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="jqR-7a-mpA" secondAttribute="height" multiplier="16:9" id="DpW-yq-H6d"/>
@@ -153,10 +153,16 @@
                                     </button>
                                 </subviews>
                             </stackView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Playing" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="5" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1yl-ax-4Ou">
-                                <rect key="frame" x="0.0" y="606" width="414" height="21"/>
+                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Playing" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="6" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1yl-ax-4Ou">
+                                <rect key="frame" x="0.0" y="571" width="414" height="82"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="10"/>
                                 <color key="textColor" red="0.66666666669999997" green="0.038349253139999998" blue="0.1556536533" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="*** Fetching Stream URL. Be patient... ***" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="K61-1j-AXF">
+                                <rect key="frame" x="0.0" y="594" width="414" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                                <color key="textColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
@@ -170,6 +176,7 @@
                             <constraint firstItem="jqR-7a-mpA" firstAttribute="top" secondItem="RjS-V6-5ll" secondAttribute="bottom" constant="2" id="8yO-6U-tyZ"/>
                             <constraint firstItem="RjS-V6-5ll" firstAttribute="top" secondItem="njC-kY-QnC" secondAttribute="bottom" constant="4" id="96a-Lf-dtK"/>
                             <constraint firstItem="jqR-7a-mpA" firstAttribute="top" secondItem="RjS-V6-5ll" secondAttribute="bottom" constant="2" id="A9S-uP-2uT"/>
+                            <constraint firstItem="tVJ-hS-Gvx" firstAttribute="top" secondItem="K61-1j-AXF" secondAttribute="bottom" constant="40" id="E6q-eF-2Aq"/>
                             <constraint firstItem="1yl-ax-4Ou" firstAttribute="leading" secondItem="JE9-Yj-Njo" secondAttribute="leadingMargin" id="HWS-Sv-SCZ"/>
                             <constraint firstItem="1yl-ax-4Ou" firstAttribute="top" secondItem="YnL-Kx-570" secondAttribute="bottom" constant="20" id="MVn-HR-dFg"/>
                             <constraint firstItem="1yl-ax-4Ou" firstAttribute="centerX" secondItem="JE9-Yj-Njo" secondAttribute="centerX" id="N27-qO-om5"/>
@@ -179,6 +186,7 @@
                             <constraint firstItem="1yl-ax-4Ou" firstAttribute="top" secondItem="YnL-Kx-570" secondAttribute="bottom" constant="10" id="g3W-PK-FP1"/>
                             <constraint firstItem="jqR-7a-mpA" firstAttribute="leading" secondItem="JE9-Yj-Njo" secondAttribute="leadingMargin" id="iiX-Ue-0zc"/>
                             <constraint firstItem="jqR-7a-mpA" firstAttribute="top" secondItem="njC-kY-QnC" secondAttribute="bottom" constant="5" id="mch-3U-E0Q"/>
+                            <constraint firstItem="K61-1j-AXF" firstAttribute="centerX" secondItem="JE9-Yj-Njo" secondAttribute="centerX" id="pX7-eY-wAs"/>
                             <constraint firstItem="jqR-7a-mpA" firstAttribute="leading" secondItem="JE9-Yj-Njo" secondAttribute="leadingMargin" constant="2" id="rui-dT-JIF"/>
                             <constraint firstItem="RjS-V6-5ll" firstAttribute="centerX" secondItem="JE9-Yj-Njo" secondAttribute="centerX" id="wVs-uR-MTI"/>
                             <constraint firstItem="jqR-7a-mpA" firstAttribute="centerX" secondItem="JE9-Yj-Njo" secondAttribute="centerX" id="xca-71-swr"/>
@@ -200,8 +208,9 @@
                     <extendedEdge key="edgesForExtendedLayout" bottom="YES"/>
                     <connections>
                         <outlet property="_titleLabel" destination="RjS-V6-5ll" id="iu0-lK-JaT"/>
+                        <outlet property="fetchLabel" destination="K61-1j-AXF" id="98u-Oa-I20"/>
                         <outlet property="mediaWebView" destination="jqR-7a-mpA" id="FsQ-9W-suC"/>
-                        <outlet property="streamUrlLabel" destination="1yl-ax-4Ou" id="CoF-yu-0vi"/>
+                        <outlet property="streamUrlLabel" destination="1yl-ax-4Ou" id="0vk-hi-eIs"/>
                         <outlet property="stream_1" destination="QHy-17-aiZ" id="FV9-hk-mCU"/>
                         <outlet property="stream_2" destination="sfC-NP-JJu" id="lT1-nc-ov2"/>
                         <outlet property="stream_3" destination="sQl-WF-070" id="1GG-gZ-2FI"/>
@@ -384,6 +393,6 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="col-So-H9Q"/>
+        <segue reference="Pks-CI-9Hx"/>
     </inferredMetricsTieBreakers>
 </document>

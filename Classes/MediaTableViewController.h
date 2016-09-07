@@ -19,5 +19,6 @@
 @interface MediaTableViewController : UITableViewController
 
 @property(nonatomic, strong, readwrite) MediaItem *rootItem;
+@property(nonatomic, strong) UIImage *image;
 
 @end

@@ -22,7 +22,7 @@
 #import "MediaTableViewController.h"
 #import "MediaViewController.h"
 #import "Toast.h"
-#import "AsyncImageView.h"
+#import "UIImageLoader.h"
 
 static NSString *const kPrefMediaListURL = @"media_list_url";
 
@@ -54,6 +54,8 @@ static NSString *const kPrefMediaListURL = @"media_list_url";
 }
 
 - (void)viewDidLoad {
+    
+    
   NSLog(@"MediaTableViewController - viewDidLoad");
   [super viewDidLoad];
 
@@ -73,6 +75,8 @@ static NSString *const kPrefMediaListURL = @"media_list_url";
            object:nil];
   if (!self.rootItem) {
     [self loadMediaList];
+      
+      
   }
 
   _castButton =
@@ -181,7 +185,7 @@ static NSString *const kPrefMediaListURL = @"media_list_url";
   UITableViewCell *cell =
       [tableView dequeueReusableCellWithIdentifier:@"MediaCell"];
     
-
+ //   cell.tag = indexPath.row;
 
   MediaItem *item =
       (MediaItem *)[self.rootItem.items objectAtIndex:indexPath.row];
@@ -243,14 +247,60 @@ static NSString *const kPrefMediaListURL = @"media_list_url";
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
   }
 
-   AsyncImageView *imageView = (AsyncImageView *)[cell.contentView viewWithTag:3];
-  [[GCKCastContext sharedInstance]
-          .imageCache fetchImageForURL:item.imageURL
-                            completion:^(UIImage *image) {
-                              [imageView setImage:image];
-                              [cell setNeedsLayout];
-                            }];
 
+
+    NSURL * imageURL = item.imageURL;
+    UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:3];
+    
+    
+    UIImageLoader * loader = [UIImageLoader defaultLoader];
+    loader.cacheImagesInMemory = FALSE;
+    loader.trustAnySSLCertificate = FALSE;
+    loader.useServerCachePolicy = TRUE;
+    loader.logCacheMisses = TRUE;
+    loader.defaultCacheControlMaxAge = 0;
+    loader.acceptedContentTypes = @[@"image/png",@"image/jpg",@"image/jpeg",@"image/bmp",@"image/gif",@"image/tiff"];
+    [loader setMemoryCacheMaxBytes:25 * (1024 * 1024)]; //25 MB
+    
+    [[UIImageLoader defaultLoader] loadImageWithURL:imageURL \
+     
+                                           hasCache:^(UIImageLoaderImage * image, UIImageLoadSource loadedFromSource) {
+                                               
+                                               //there was a cached image available. use that.
+                                               imageView.image = image;
+                                               
+                                           } sendingRequest:^(BOOL didHaveCachedImage) {
+                                               
+                                               //a request is being made for the image.
+                                               
+                                               if(!didHaveCachedImage) {
+                                                   
+                                                   //there was not a cached image available, set a placeholder or do nothing.
+                                                  // loader.hidden = FALSE;
+                                                  // [loader startAnimating];
+                                                   imageView.image = [UIImage imageNamed:@"placeholder"];
+                                               }
+                                               
+                                           } requestCompleted:^(NSError *error, UIImageLoaderImage * image, UIImageLoadSource loadedFromSource) {
+                                               
+                                               //network request finished.
+                                               
+                                               //[loader stopAnimating];
+                                               //loader.hidden = TRUE;
+                                               
+                                               if(loadedFromSource == UIImageLoadSourceNetworkToDisk) {
+                                                   //the image was downloaded and saved to disk.
+                                                   //since it was downloaded it has been updated since
+                                                   //last cached version, or is brand new
+                                                   
+                                                   imageView.image = image;
+                                               }
+                                           }];
+    
+    imageView.layer.shadowOffset = CGSizeMake(1, 0);
+    imageView.layer.shadowColor = [[UIColor blackColor] CGColor];
+    imageView.layer.shadowRadius = 5;
+    imageView.layer.shadowOpacity = .4;
 
     
     //Cell Design

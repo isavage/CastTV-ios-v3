@@ -32,8 +32,8 @@
 @property (weak, nonatomic) IBOutlet UIButton *stream_1;
 @property (weak, nonatomic) IBOutlet UIButton *stream_2;
 @property (weak, nonatomic) IBOutlet UIButton *stream_3;
-@property (weak, nonatomic) IBOutlet UILabel *streamUrlLabel;
+@property (weak, nonatomic) IBOutlet UILabel *fetchLabel;
+
 @property(nonatomic, strong, readwrite) MediaItem *media;
 @property(nonatomic, strong, readwrite) GCKMediaInformation *mediaInfoNew;
-
 @end

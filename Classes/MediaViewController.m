@@ -45,6 +45,7 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
   IBOutlet UILabel *_titleLabel;
   IBOutlet UILabel *_subtitleLabel;
   IBOutlet UITextView *_descriptionTextView;
+  IBOutlet UILabel *streamUrlLabel;
   IBOutlet LocalPlayerView *_localPlayerView;
   GCKSessionManager *_sessionManager;
   GCKCastSession *_castSession;
@@ -77,7 +78,6 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
 @implementation MediaViewController
 
 
-
 - (instancetype)initWithCoder:(NSCoder *)coder {
   self = [super initWithCoder:(NSCoder *)coder];
   if (self) {
@@ -91,6 +91,20 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
 - (void)viewDidLoad {
   [super viewDidLoad];
   NSLog(@"in MediaViewController viewDidLoad");
+        
+    UIWebView *theLoadingImageView = [[UIWebView alloc] init ];
+    
+    self.loadingImageView = theLoadingImageView;
+    
+    self.loadingImageView.frame=self.mediaWebView.bounds;
+    
+    [self.loadingImageView setScalesPageToFit:YES];
+    
+    streamUrlLabel.text= @"";
+    
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"loading" ofType:@"gif"];
+    [theLoadingImageView loadHTMLString:[NSString stringWithFormat:@"<html><body><img src=\"file://%@\"></body></html>",path] baseURL:nil];
+
 
   _localPlayerView.delegate = self;
 
@@ -141,22 +155,23 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
 
     [self activeButtonUI:_stream_1 rbutton1:_stream_2 rbutton2:_stream_3];
 
-    _streamUrlLabel.text=self.streamURL.absoluteString;
+    streamUrlLabel.text=self.streamURL.absoluteString;
     _activeButton=1;
     
     
-    _streamUrlLabel.layer.borderWidth=1.0f;
-    _streamUrlLabel.layer.borderColor=[[UIColor blackColor] CGColor];
-    _streamUrlLabel.layer.backgroundColor=[[UIColor whiteColor] CGColor];
-    _streamUrlLabel.layer.shadowOffset = CGSizeMake(1, 0);
-    _streamUrlLabel.layer.shadowColor = [[UIColor blackColor] CGColor];
-    _streamUrlLabel.layer.shadowRadius = 5;
-    _streamUrlLabel.layer.shadowOpacity = .5;
+    streamUrlLabel.layer.borderWidth=1.0f;
+    streamUrlLabel.layer.borderColor=[[UIColor blackColor] CGColor];
+    streamUrlLabel.layer.backgroundColor=[[UIColor whiteColor] CGColor];
+    streamUrlLabel.layer.shadowOffset = CGSizeMake(1, 0);
+    streamUrlLabel.layer.shadowColor = [[UIColor blackColor] CGColor];
+    streamUrlLabel.layer.shadowRadius = 5;
+    streamUrlLabel.layer.shadowOpacity = .5;
 
 
 }
 
 - (void) loadMediaWebView{
+    
     
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapMethod:)];
     [tap setNumberOfTapsRequired:1]; // Set your own number here
@@ -197,8 +212,8 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
     if ([self respondsToSelector:@selector(continueAfterPlayButtonClicked)]) {
         if (![self continueAfterPlayButtonClicked]) {
             //  self.newmoviePlayer.mediaPlaybackRequiresUserAction= YES;
-            [self.mediaWebView stopLoading];
-            [self.mediaWebView reload];
+            //[self.mediaWebView stopLoading];
+            //[self.mediaWebView reload];
             
             // [self.newmoviePlayer goBack];
             flag=YES;
@@ -212,14 +227,45 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
 
 - (void) getStreamURL:(NSURL*) webPageID{
     
+    //Add Input for Test
+    if ([webPageID.absoluteString containsString:@"enter-channel"]) {
+        
+        NSLog(@"Entered Channel Input");
+        UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Live Sports" message:@"Input the Channel You'd wish to cast!" delegate:self cancelButtonTitle:@"Play" otherButtonTitles:nil];
+        alert.alertViewStyle = UIAlertViewStylePlainTextInput;
+        [[alert textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeNumberPad];
+        [alert show];
+        
+         [self showLoadingView:YES];
+    }
+    
+    
+    if ([webPageID.absoluteString containsString:@"/mysite/"]) {
+        
     [self showLoadingView:YES];
     
+    NSLog(@"URL from EDP!!!");
+
     NSURL *url = [NSURL URLWithString: EDIGITALPLACE_URL];
     NSString *body = [NSString stringWithFormat:@"%@%@", EDIGITALPLACE_URL_POST,webPageID];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL: url];
     [request setHTTPMethod: @"POST"];
     [request setHTTPBody: [body dataUsingEncoding: NSUTF8StringEncoding]];
     [self.mediaWebView loadRequest: request];
+        
+    }
+    
+    else{
+        
+    NSLog(@"URL from Web!!!");
+    [self showLoadingView:NO];
+
+    //self.mediaWebView.allowsInlineMediaPlayback=true;
+    //self.mediaWebView.mediaPlaybackRequiresUserAction = false;
+        
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL: webPageID];
+    [self.mediaWebView loadRequest: request];
+    }
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(playerItemBecameCurrent:)
@@ -228,7 +274,23 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
 
 }
 
+// Input Test code part 2
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+    NSLog(@"Entered: %@",[[[alertView textFieldAtIndex:0] text] uppercaseString]);
+    
+    
+    NSURL *url = [NSURL URLWithString: EDIGITALPLACE_URL];
+    NSString *body = [NSString stringWithFormat:@"%@%@%@%@", EDIGITALPLACE_URL_POST,@"/mysite/channel-",[[[alertView textFieldAtIndex:0] text] uppercaseString],@"/"];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL: url];
+    [request setHTTPMethod: @"POST"];
+    [request setHTTPBody: [body dataUsingEncoding: NSUTF8StringEncoding]];
+    [self.mediaWebView loadRequest: request];
+
+}
+
+// Code Ends
 -(void)playerItemBecameCurrent:(NSNotification*)notification {
+    
     
     AVPlayerItem *playerItem = [notification object];
     if(playerItem == nil) return;
@@ -245,8 +307,12 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
     
     [self createNewMediaData];
     
-    _streamUrlLabel.text=  [NSString stringWithFormat: @"Now Playing:\n%@",self.streamURL.absoluteString];
+    streamUrlLabel.text=  [NSString stringWithFormat: @"Now Playing:\n%@",self.streamURL.absoluteString];
     
+    [self.fetchLabel setHidden:YES];
+
+    [streamUrlLabel setHidden:NO];
+
     
     [self.mediaWebView loadRequest:[NSURLRequest requestWithURL:self.streamURL]];
     
@@ -284,23 +350,14 @@ static NSString *const kPrefIsContentStream = @"is_content_stream";
     
     if(show){
         
-        UIWebView *theLoadingImageView = [[UIWebView alloc] init ];
-        
-        self.loadingImageView = theLoadingImageView;
-        
         [self.mediaWebView addSubview:self.loadingImageView];
-        self.loadingImageView.frame=self.mediaWebView.bounds;
-        
-        [self.loadingImageView setScalesPageToFit:YES];
-        [theLoadingImageView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString: LOADING_IMAGE_URL]]];
-        
-        
 
     }
     
     else{
+        [self.loadingImageView removeFromSuperview];
+
         
-    [self.loadingImageView removeFromSuperview];
     }
 }
 
@@ -839,13 +896,17 @@ didFailToResumeSession:(GCKSession *)session
 
 - (IBAction)stream_1:(id)sender {
     
+    [streamUrlLabel setHidden:YES];
+    [self.fetchLabel setHidden:NO];
+
+
+    NSLog(@"%@",[_mediaInfo.mediaTracks[0] contentIdentifier]);
     
-    NSLog(@"%@",[self.mediaInfo.mediaTracks[0] contentIdentifier]);
-    
-      [self getStreamURL:[NSURL URLWithString:self.mediaInfo.mediaTracks[0].contentIdentifier]];
+      [self getStreamURL:[NSURL URLWithString:_mediaInfo.mediaTracks[0].contentIdentifier]];
     
     [self activeButtonUI:_stream_1 rbutton1:_stream_3 rbutton2:_stream_2];
-    _streamUrlLabel.text=self.streamURL.absoluteString;
+    
+    streamUrlLabel.text=self.streamURL.absoluteString;
     _activeButton=1;
     
 }
@@ -853,40 +914,58 @@ didFailToResumeSession:(GCKSession *)session
 
 - (IBAction)stream_2:(id)sender {
     
-    NSLog(@"%@",[self.mediaInfo.mediaTracks[1] contentIdentifier]);
+    NSLog(@"Enter stream_2");
+    [streamUrlLabel setHidden:YES];
+    [self.fetchLabel setHidden:NO];
+
     
-    [self getStreamURL:[NSURL URLWithString:self.mediaInfo.mediaTracks[1].contentIdentifier]];
+    NSLog(@"%@",[_mediaInfo.mediaTracks[1] contentIdentifier]);
+    NSLog(@"Before getstreamurl");
     
+    [self getStreamURL:[NSURL URLWithString:_mediaInfo.mediaTracks[1].contentIdentifier]];
+    NSLog(@"After getstreamurl");
+
     [self activeButtonUI:_stream_2 rbutton1:_stream_1 rbutton2:_stream_3];
-    _streamUrlLabel.text=self.streamURL.absoluteString;
+    NSLog(@"After activebuttonui");
+
+
+    streamUrlLabel.text=self.streamURL.absoluteString;
     _activeButton=2;
     
-    
+    NSLog(@"stream_2 finished");
+
     
 }
 
 - (IBAction)stream_3:(id)sender {
     
+    [streamUrlLabel setHidden:YES];
+    [self.fetchLabel setHidden:NO];
     
-    NSLog(@"%@",[self.mediaInfo.mediaTracks[2] contentIdentifier]);
+    NSLog(@"%@",[_mediaInfo.mediaTracks[2] contentIdentifier]);
     
     [self getStreamURL:[NSURL URLWithString:self.mediaInfo.mediaTracks[2].contentIdentifier]];
     
     [self activeButtonUI:_stream_3 rbutton1:_stream_1 rbutton2:_stream_2];
-    _streamUrlLabel.text=self.streamURL.absoluteString;
+    
+
+    streamUrlLabel.text=self.streamURL.absoluteString;
     _activeButton=3;
     
     
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)mediaWebView {
+    
     if((flag)){
         // Disable user selection
         [mediaWebView stringByEvaluatingJavaScriptFromString:@"document.documentElement.style.webkitUserSelect='none';"];
         // Disable callout
         [mediaWebView stringByEvaluatingJavaScriptFromString:@"document.documentElement.style.webkitTouchCallout='none';"];
     }
+
 }
+
 
 
 @end
